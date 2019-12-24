@@ -4,7 +4,6 @@ This guide will walk you through multiple ways to setup `neural-style-pt` on Ubu
 
 Note that in order to reduce their size, the pre-packaged binary releases (pip, Conda, etc...) have removed support for some older GPUs, and thus you will have to install from source in order to use these GPUs.
 
-
 # Ubuntu:
 
 ## With A Package Manager:
@@ -24,14 +23,12 @@ pip install neural-style
 
 Or:
 
-
 ```
 # in a terminal, run the command
 pip3 install neural-style
 ```
 
 Next download the models with:
-
 
 ```
 neural-style -download_models
@@ -148,7 +145,6 @@ Note that the cuDNN backend can only be used for GPU mode.
 
 ### (Optional) Steps 1-3: Install PyTorch with support for AMD GPUs using Radeon Open Compute Stack (ROCm)
 
-
 It is recommended that if you wish to use PyTorch with an AMD GPU, you install it via the official ROCm dockerfile:
 https://rocm.github.io/pytorch.html
 
@@ -157,7 +153,6 @@ https://rocm.github.io/pytorch.html
 PyTorch does not officially provide support for compilation on the host with AMD GPUs, but [a user guide posted here](https://github.com/ROCmSoftwarePlatform/pytorch/issues/337#issuecomment-467220107) apparently works well.
 
 ROCm utilizes a CUDA porting tool called HIP, which automatically converts CUDA code into HIP code. HIP code can run on both AMD and Nvidia GPUs.
-
 
 ### Step 3: Install PyTorch
 
@@ -179,15 +174,13 @@ To check that your torch installation is working, run the command `python` or `p
 
 You can then type `print(torch.version.cuda)` and `print(torch.backends.cudnn.version())` to confirm that you are using the desired versions of CUDA and cuDNN.
 
-To quit just type `exit()` or use  Ctrl-D.
+To quit just type `exit()` or use Ctrl-D.
 
 Now continue on to [installing neural-style-pt](https://github.com/ProGamerGov/neural-style-pt/blob/master/INSTALL.md#install-neural-style-pt) to install neural-style-pt.
-
 
 # Windows Installation
 
 If you wish to install PyTorch on Windows From Source or via Conda, you can find instructions on the PyTorch website: https://pytorch.org/
-
 
 ### Github and pip
 
@@ -195,11 +188,9 @@ First, you will need to download Python 3 and install it: https://www.python.org
 
 Then using https://pytorch.org/, get the correct pip command, paste it into the Command Prompt (CMD) and hit enter:
 
-
 ```
 pip3 install torch===1.3.0 torchvision===0.4.1 -f https://download.pytorch.org/whl/torch_stable.html
 ```
-
 
 After installing PyTorch, download the neural-style-pt Github respository and extract/unzip it to the desired location.
 

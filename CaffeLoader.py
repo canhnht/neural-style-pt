@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torchvision.models as models
 
 
 class VGG(nn.Module):
@@ -37,10 +38,10 @@ class VGG_FCN32S(nn.Module):
         super(VGG_FCN32S, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
-            nn.Conv2d(512,4096,(7, 7)),
+            nn.Conv2d(512, 4096, (7, 7)),
             nn.ReLU(True),
             nn.Dropout(0.5),
-            nn.Conv2d(4096,4096,(1, 1)),
+            nn.Conv2d(4096, 4096, (1, 1)),
             nn.ReLU(True),
             nn.Dropout(0.5),
         )
@@ -64,50 +65,50 @@ class NIN(nn.Module):
     def __init__(self, pooling):
         super(NIN, self).__init__()
         if pooling == 'max':
-            pool2d = nn.MaxPool2d((3, 3),(2, 2),(0, 0),ceil_mode=True)
+            pool2d = nn.MaxPool2d((3, 3), (2, 2), (0, 0), ceil_mode=True)
         elif pooling == 'avg':
-            pool2d = nn.AvgPool2d((3, 3),(2, 2),(0, 0),ceil_mode=True)
+            pool2d = nn.AvgPool2d((3, 3), (2, 2), (0, 0), ceil_mode=True)
 
         self.features = nn.Sequential(
-            nn.Conv2d(3,96,(11, 11),(4, 4)),
+            nn.Conv2d(3, 96, (11, 11), (4, 4)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(96,96,(1, 1)),
+            nn.Conv2d(96, 96, (1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(96,96,(1, 1)),
-            nn.ReLU(inplace=True),
-            pool2d,
-            nn.Conv2d(96,256,(5, 5),(1, 1),(2, 2)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256,256,(1, 1)),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256,256,(1, 1)),
+            nn.Conv2d(96, 96, (1, 1)),
             nn.ReLU(inplace=True),
             pool2d,
-            nn.Conv2d(256,384,(3, 3),(1, 1),(1, 1)),
+            nn.Conv2d(96, 256, (5, 5), (1, 1), (2, 2)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(384,384,(1, 1)),
+            nn.Conv2d(256, 256, (1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(384,384,(1, 1)),
+            nn.Conv2d(256, 256, (1, 1)),
+            nn.ReLU(inplace=True),
+            pool2d,
+            nn.Conv2d(256, 384, (3, 3), (1, 1), (1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 384, (1, 1)),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 384, (1, 1)),
             nn.ReLU(inplace=True),
             pool2d,
             nn.Dropout(0.5),
-            nn.Conv2d(384,1024,(3, 3),(1, 1),(1, 1)),
+            nn.Conv2d(384, 1024, (3, 3), (1, 1), (1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(1024,1024,(1, 1)),
+            nn.Conv2d(1024, 1024, (1, 1)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(1024,1000,(1, 1)),
+            nn.Conv2d(1024, 1000, (1, 1)),
             nn.ReLU(inplace=True),
-            nn.AvgPool2d((6, 6),(1, 1),(0, 0),ceil_mode=True),
+            nn.AvgPool2d((6, 6), (1, 1), (0, 0), ceil_mode=True),
             nn.Softmax(),
         )
-
 
 
 class ModelParallel(nn.Module):
     def __init__(self, net, device_ids, device_splits):
         super(ModelParallel, self).__init__()
         self.device_list = self.name_devices(device_ids.split(','))
-        self.chunks = self.chunks_to_devices(self.split_net(net, device_splits.split(',')))
+        self.chunks = self.chunks_to_devices(
+            self.split_net(net, device_splits.split(',')))
 
     def name_devices(self, input_list):
         device_list = []
@@ -143,12 +144,12 @@ class ModelParallel(nn.Module):
 
     def forward(self, input):
         for i, chunk in enumerate(self.chunks):
-            if i < len(self.chunks) -1:
-                input = self.c(chunk(self.c(input, i).to(self.device_list[i])), i+1).to(self.device_list[i+1])
+            if i < len(self.chunks) - 1:
+                input = self.c(chunk(self.c(input, i).to(
+                    self.device_list[i])), i+1).to(self.device_list[i+1])
             else:
                 input = chunk(input)
         return input
-
 
 
 def buildSequential(channel_list, pooling):
@@ -171,26 +172,26 @@ def buildSequential(channel_list, pooling):
 
 
 channel_list = {
-'VGG-16p': [24, 22, 'P', 41, 51, 'P', 108, 89, 111, 'P', 184, 276, 228, 'P', 512, 512, 512, 'P'],
-'VGG-16': [64, 64, 'P', 128, 128, 'P', 256, 256, 256, 'P', 512, 512, 512, 'P', 512, 512, 512, 'P'],
-'VGG-19': [64, 64, 'P', 128, 128, 'P', 256, 256, 256, 256, 'P', 512, 512, 512, 512, 'P', 512, 512, 512, 512, 'P'],
+    'VGG-16p': [24, 22, 'P', 41, 51, 'P', 108, 89, 111, 'P', 184, 276, 228, 'P', 512, 512, 512, 'P'],
+    'VGG-16': [64, 64, 'P', 128, 128, 'P', 256, 256, 256, 'P', 512, 512, 512, 'P', 512, 512, 512, 'P'],
+    'VGG-19': [64, 64, 'P', 128, 128, 'P', 256, 256, 256, 256, 'P', 512, 512, 512, 512, 'P', 512, 512, 512, 512, 'P'],
 }
 
 nin_dict = {
-'C': ['conv1', 'cccp1', 'cccp2', 'conv2', 'cccp3', 'cccp4', 'conv3', 'cccp5', 'cccp6', 'conv4-1024', 'cccp7-1024', 'cccp8-1024'],
-'R': ['relu0', 'relu1', 'relu2', 'relu3', 'relu5', 'relu6', 'relu7', 'relu8', 'relu9', 'relu10', 'relu11', 'relu12'],
-'P': ['pool1', 'pool2', 'pool3', 'pool4'],
-'D': ['drop'],
+    'C': ['conv1', 'cccp1', 'cccp2', 'conv2', 'cccp3', 'cccp4', 'conv3', 'cccp5', 'cccp6', 'conv4-1024', 'cccp7-1024', 'cccp8-1024'],
+    'R': ['relu0', 'relu1', 'relu2', 'relu3', 'relu5', 'relu6', 'relu7', 'relu8', 'relu9', 'relu10', 'relu11', 'relu12'],
+    'P': ['pool1', 'pool2', 'pool3', 'pool4'],
+    'D': ['drop'],
 }
 vgg16_dict = {
-'C': ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv4_1', 'conv4_2', 'conv4_3', 'conv5_1', 'conv5_2', 'conv5_3'],
-'R': ['relu1_1', 'relu1_2', 'relu2_1', 'relu2_2', 'relu3_1', 'relu3_2', 'relu3_3', 'relu4_1', 'relu4_2', 'relu4_3', 'relu5_1', 'relu5_2', 'relu5_3'],
-'P': ['pool1', 'pool2', 'pool3', 'pool4', 'pool5'],
+    'C': ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv4_1', 'conv4_2', 'conv4_3', 'conv5_1', 'conv5_2', 'conv5_3'],
+    'R': ['relu1_1', 'relu1_2', 'relu2_1', 'relu2_2', 'relu3_1', 'relu3_2', 'relu3_3', 'relu4_1', 'relu4_2', 'relu4_3', 'relu5_1', 'relu5_2', 'relu5_3'],
+    'P': ['pool1', 'pool2', 'pool3', 'pool4', 'pool5'],
 }
 vgg19_dict = {
-'C': ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv3_4', 'conv4_1', 'conv4_2', 'conv4_3', 'conv4_4', 'conv5_1', 'conv5_2', 'conv5_3', 'conv5_4'],
-'R': ['relu1_1', 'relu1_2', 'relu2_1', 'relu2_2', 'relu3_1', 'relu3_2', 'relu3_3', 'relu3_4', 'relu4_1', 'relu4_2', 'relu4_3', 'relu4_4', 'relu5_1', 'relu5_2', 'relu5_3', 'relu5_4'],
-'P': ['pool1', 'pool2', 'pool3', 'pool4', 'pool5'],
+    'C': ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv3_4', 'conv4_1', 'conv4_2', 'conv4_3', 'conv4_4', 'conv5_1', 'conv5_2', 'conv5_3', 'conv5_4'],
+    'R': ['relu1_1', 'relu1_2', 'relu2_1', 'relu2_2', 'relu3_1', 'relu3_2', 'relu3_3', 'relu3_4', 'relu4_1', 'relu4_2', 'relu4_3', 'relu4_4', 'relu5_1', 'relu5_2', 'relu5_3', 'relu5_4'],
+    'P': ['pool1', 'pool2', 'pool3', 'pool4', 'pool5'],
 }
 
 
@@ -200,21 +201,28 @@ def modelSelector(model_file, pooling):
         if "pruning" in model_file:
             print("VGG-16 Architecture Detected")
             print("Using The Channel Pruning Model")
-            cnn, layerList = VGG_PRUNED(buildSequential(channel_list['VGG-16p'], pooling)), vgg16_dict
+            cnn, layerList = VGG_PRUNED(buildSequential(
+                channel_list['VGG-16p'], pooling)), vgg16_dict
         elif "fcn32s" in model_file:
             print("VGG-16 Architecture Detected")
             print("Using the fcn32s-heavy-pascal Model")
-            cnn, layerList = VGG_FCN32S(buildSequential(channel_list['VGG-16'], pooling)), vgg16_dict
+            cnn, layerList = VGG_FCN32S(buildSequential(
+                channel_list['VGG-16'], pooling)), vgg16_dict
         elif "sod" in model_file:
             print("VGG-16 Architecture Detected")
             print("Using The SOD Fintune Model")
-            cnn, layerList = VGG_SOD(buildSequential(channel_list['VGG-16'], pooling)), vgg16_dict
+            cnn, layerList = VGG_SOD(buildSequential(
+                channel_list['VGG-16'], pooling)), vgg16_dict
         elif "19" in model_file:
             print("VGG-19 Architecture Detected")
-            cnn, layerList = VGG(buildSequential(channel_list['VGG-19'], pooling)), vgg19_dict
+            cnn, layerList = VGG(buildSequential(
+                channel_list['VGG-19'], pooling)), vgg19_dict
+            # cnn = models.vgg19(pretrained=True)
+            # layerList = vgg19_dict
         elif "16" in model_file:
             print("VGG-16 Architecture Detected")
-            cnn, layerList = VGG(buildSequential(channel_list['VGG-16'], pooling)), vgg16_dict
+            cnn, layerList = VGG(buildSequential(
+                channel_list['VGG-16'], pooling)), vgg16_dict
         else:
             raise ValueError("VGG architecture not recognized.")
     elif "nin" in model_file:
@@ -229,12 +237,14 @@ def modelSelector(model_file, pooling):
 def print_loadcaffe(cnn, layerList):
     c = 0
     for l in list(cnn):
-         if "Conv2d" in str(l):
-             in_c, out_c, ks  = str(l.in_channels), str(l.out_channels), str(l.kernel_size)
-             print(layerList['C'][c] +": " +  (out_c + " " + in_c + " " + ks).replace(")",'').replace("(",'').replace(",",'') )
-             c+=1
-         if c == len(layerList['C']):
-             break
+        if "Conv2d" in str(l):
+            in_c, out_c, ks = str(l.in_channels), str(
+                l.out_channels), str(l.kernel_size)
+            print(layerList['C'][c] + ": " + (out_c + " " + in_c + " " +
+                                              ks).replace(")", '').replace("(", '').replace(",", ''))
+            c += 1
+        if c == len(layerList['C']):
+            break
 
 
 # Load the model, and configure pooling layer type
@@ -247,8 +257,7 @@ def loadCaffemodel(model_file, pooling, use_gpu, disable_check):
     # Maybe convert the model to cuda now, to avoid later issues
     if "c" not in str(use_gpu).lower() or "c" not in str(use_gpu[0]).lower():
         cnn = cnn.cuda()
-    cnn = cnn.features
 
-    print_loadcaffe(cnn, layerList)
+    print_loadcaffe(cnn.features, layerList)
 
-    return cnn, layerList
+    return cnn.features, layerList
